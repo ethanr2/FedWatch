@@ -22,6 +22,8 @@ from bokeh.layouts import row, column
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 
+import os 
+
 def getTable():
     path = 'chromedriver'
     driver = Chrome(path)
@@ -41,7 +43,7 @@ def getTable():
     table['Month'] = table['Month'].apply(getDTS)
     table['Last'] = table['Last'].astype(float)/100
     
-    name = 'data\cme_' + str(dt.now())[:10] + '.pkl'
+    name = dataPath +  '/cme.pkl'
     table.to_pickle(name)
     
     return table
@@ -98,6 +100,8 @@ def chart_NGDP_ser(data,low, up, name):
 #df = getTable()
 path = 'chromedriver'
 driver = Chrome(path)
+dataPath = 'data/' + str(dt.now())[:10]
+os.mkdir(dataPath)
 
 def find_note():
     URL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
@@ -111,7 +115,13 @@ def find_note():
             break
     item = items[i-1].find_element_by_link_text('Implementation Note')
     return item.get_attribute('href')
-print(find_note())
+
+URL = find_note()
+driver.get(URL)
+item = driver.find_element_by_xpath('//*[@id="content"]/div[3]/div[1]/ul')
+with open(dataPath + '/FedImpNote.txt', 'w') as file:
+    file.write(item.text)
+getTable()
 #df = pd.read_pickle('data\cme_2019-08-05.pkl')
 #df['Last'] = 1 - df['Last'] 
 #name = u'imgs/ffr' + str(dt.now())[:10]
