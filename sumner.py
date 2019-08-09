@@ -98,10 +98,20 @@ def chart_NGDP_ser(data,low, up, name):
 #df = getTable()
 path = 'chromedriver'
 driver = Chrome(path)
-URL = "https://www.federalreserve.gov/monetarypolicy/materials/"
-driver.get(URL)
-table = driver.find_elements_by_tag_name("div")
-print(table)
+
+def find_note():
+    URL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    driver.get(URL)
+    
+    items = driver.find_elements_by_xpath('//*[@id="article"]/div[2]/div')[1:]
+    
+    for i in range(len(items)):
+        text = items[i].text
+        if not 'Implementation Note' in text.split('\n'):
+            break
+    item = items[i-1].find_element_by_link_text('Implementation Note')
+    return item.get_attribute('href')
+print(find_note())
 #df = pd.read_pickle('data\cme_2019-08-05.pkl')
 #df['Last'] = 1 - df['Last'] 
 #name = u'imgs/ffr' + str(dt.now())[:10]
