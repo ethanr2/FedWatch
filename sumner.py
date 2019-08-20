@@ -116,13 +116,21 @@ def find_note():
     item = items[i-1].find_element_by_link_text('Implementation Note')
     return item.get_attribute('href')
 
-URL = find_note()
-driver.get(URL)
-item = driver.find_element_by_xpath('//*[@id="content"]/div[3]/div[1]/ul')
-with open(dataPath + '/FedImpNote.txt', 'w') as file:
-    file.write(item.text)
+#URL = find_note()
+#driver.get(URL)
+#item = driver.find_element_by_xpath('//*[@id="content"]/div[3]/div[1]/ul')
+#with open(dataPath + '/FedImpNote.txt', 'w') as file:
+#    file.write(item.text)
+#words = item.text.split()    
+#find = ['maintain', 'the', 'federal', 'funds', 'rate', 'in', 'a', 'target',
+#        'range', 'of']
+#n = len(find)
+#for i in range(len(words) - len(find)):
+#    if words[i: i + n] == find:
+#        lo = float(words[i + n])
+#        print(, words[i + n + 2]) 
 getTable()
-#df = pd.read_pickle('data\cme_2019-08-05.pkl')
+#df = pd.read_pickle(r'data\2019-08-14\cme.pkl')
 #df['Last'] = 1 - df['Last'] 
 #name = u'imgs/ffr' + str(dt.now())[:10]
 #output_file(name + '.html')
