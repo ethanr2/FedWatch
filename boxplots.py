@@ -15,7 +15,7 @@ from scipy import stats
 
 from bokeh.io import export_png,output_file,show
 from bokeh.plotting import figure
-from bokeh.models import NumeralTickFormatter, Label,ColumnDataSource
+from bokeh.models import NumeralTickFormatter, LabelSet,ColumnDataSource
 from bokeh.models.tickers import FixedTicker, SingleIntervalTicker
 from bokeh.layouts import row, column
 
@@ -52,94 +52,140 @@ def makedf():
     out = out.loc[out['data'] != 0,:]
     return out, recent.strftime('%Y-%m-%d'), first.strftime('%Y-%m-%d')
 
+def makeData():
+    df, recent, first = makedf()
+    print(df)
 
-df, recent, first = makedf()
-print(df)
+    df['type'] = df['type'].apply(lambda x: xdict[x])
+    # find the quartiles and IQR for each category
+    groups = df.groupby('type')
+    q1 = groups.quantile(q=0.25)
+    q2 = groups.quantile(q=0.5)
+    q3 = groups.quantile(q=0.75)
+    iqr = q3 - q1
+    upper = q3 + 1.5*iqr
+    lower = q1 - 1.5*iqr
+    
+    # find the outliers for each category
+    def outliers(group):
+        gName = group.name
+        return group[(group.data > upper.loc[gName]['data']) | (group.data < lower.loc[gName]['data'])]['data']
+    out = groups.apply(outliers).dropna()
+    
+    # prepare outlier data for plotting, we need coordinates for every outlier.
+    if not out.empty:
+        outx = []
+        outy = []
+        for keys in out.index:
+            outx.append(keys[0])
+            outy.append(out.loc[keys[0]].loc[keys[1]])
+    out = pd.DataFrame({
+            'x': outx,
+            'y': outy
+            })
+    # if no outliers, shrink lengths of stems to be no longer than the minimums or maximums
+    qmin = groups.quantile(q=0.00)
+    qmax = groups.quantile(q=1.00)
+    upper.data = [min([x,y]) for (x,y) in zip(list(qmax.loc[:,'data']),upper.data)]
+    lower.data = [max([x,y]) for (x,y) in zip(list(qmin.loc[:,'data']),lower.data)]
+    def SEP():
+        sep = pd.DataFrame({
+                'qmax': [2.1,2.2,2.2], 
+                'q3' : [1.9,2.1,2.1],
+                'q2' : [1.8,2.0,2.0],
+                'q1' : [1.8,2.0,2.0],
+                'qmin' : [1.6, 1.9, 2.0]
+                }, index = ['2019','2020','2021'])
+        iqr = sep['q3'] - sep['q1']
+        sep['upper'] = sep['q3'] + 1.5*iqr
+        sep['lower'] = sep['q1'] - 1.5*iqr
+        
+        return sep/100
+    data = pd.DataFrame({
+            'q1': q1.data,
+            'q2': q2.data,
+            'q3': q3.data,
+            'qmin': qmin.data,
+            'qmax': qmax.data,
+            'upper': upper.data,
+            'lower': lower.data
+            })
+    data = data.append(SEP())
+    
+    return data, out
+
+
 xdict = {
+        '2019':'2019',
+        '2020':'2020',
+        '2021':'2021',
+        '':'',
         'COREPCE2':'Nowcast', 
         'COREPCE3':'1 Quarter', 
         'COREPCE4':'2 Quarters', 
         'COREPCE5':'3 Quarters', 
         'COREPCE6':'1 Year', 
-        '':'',
+        ' ':' ',
         'T5YIE':'5 Years',
         'T10YIE':'10 Years'
         }
 xlab = list(xdict.values())
-df['type'] = df['type'].apply(lambda x: xdict[x])
-# find the quartiles and IQR for each category
-groups = df.groupby('type')
-q1 = groups.quantile(q=0.25)
-q2 = groups.quantile(q=0.5)
-q3 = groups.quantile(q=0.75)
-iqr = q3 - q1
-upper = q3 + 1.5*iqr
-lower = q1 - 1.5*iqr
+#data, out = makeData()
 
-# find the outliers for each category
-def outliers(group):
-    gName = group.name
-    return group[(group.data > upper.loc[gName]['data']) | (group.data < lower.loc[gName]['data'])]['data']
-out = groups.apply(outliers).dropna()
+ymax = float(data['qmax'].max())+ .004
+ymin = float(data['qmin'].min())
 
-# prepare outlier data for plotting, we need coordinates for every outlier.
-if not out.empty:
-    outx = []
-    outy = []
-    for keys in out.index:
-        outx.append(keys[0])
-        outy.append(out.loc[keys[0]].loc[keys[1]])
-
-# if no outliers, shrink lengths of stems to be no longer than the minimums or maximums
-qmin = groups.quantile(q=0.00)
-qmax = groups.quantile(q=1.00)
-upper.data = [min([x,y]) for (x,y) in zip(list(qmax.loc[:,'data']),upper.data)]
-lower.data = [max([x,y]) for (x,y) in zip(list(qmin.loc[:,'data']),lower.data)]
-
-ymax = float(qmax.max())+ .004
-ymin = float(qmin.min())
+# now we draw the chart
 p = figure(width = 1400,
            title="Target👏The👏Forecast👏", 
            y_axis_label = 'Inflation Forecast', 
            y_range = (ymin, ymax), x_range = xlab)
-xlab.pop(5)
+xlab.pop(3)
+xlab.pop(8)
 # the order is slightly messed up
-
-xlab.sort()
+data = data.loc[xlab,:]
 
 # stems
-p.segment(xlab, upper.data, xlab, q3.data, line_color="black")
-p.segment(xlab, lower.data, xlab, q1.data, line_color="black")
+p.segment(xlab, data['upper'], xlab, data['q3'], line_color="black")
+p.segment(xlab, data['lower'], xlab, data['q1'], line_color="black")
 
 # boxes
-p.vbar(xlab, 0.7, q2.data, q3.data, 
+p.vbar(xlab, 0.7, data['q2'], data['q3'], 
        fill_color='orange', line_color="black", alpha = .90)
-p.vbar(xlab, 0.7, q1.data, q2.data, 
+p.vbar(xlab, 0.7, data['q1'], data['q2'], 
        fill_color='blue', line_color="black", alpha = .90)
 
 # whiskers (almost-0 height rects simpler than segments)
-p.rect(xlab, lower.data, 0.2, 0.0001, line_color="black")
-p.rect(xlab, upper.data, 0.2, 0.0001, line_color="black")
+p.rect(xlab, data['lower'], 0.2, 0.0001, line_color="black")
+p.rect(xlab, data['upper'], 0.2, 0.0001, line_color="black")
 
 # outliers
 
 if not out.empty:
     print(out.empty)
-    p.circle(outx, outy, size=6, color="#F38630", fill_alpha=0.6)
+    p.circle(out['x'], out['y'], size=6, color="#F38630", fill_alpha=0.6)
 
 
 # Cosmetic stuff
-p.line(['Nowcast', '10 Years'], [.02,.02], color = 'black', line_dash = 'dashed')
+p.line(['2019', '10 Years'], [.02,.02], color = 'black', line_dash = 'dashed')
+p.line([' ', ' '], [0,.04], color = 'black')
 p.line(['', ''], [0,.04], color = 'black')
-spf = Label(x = 1.5, y = ymax - .002, 
-            text = 'Survey of Professional Forecasters: 2019Q3, August 9, 2019')
 
-
-tips= Label(x = 6, y = ymax - .002, 
-            text = 'TIPS Spread: last six weeks')
-
-p.add_layout(spf)
-p.add_layout(tips)
+text = ['Summary of Economic Projections',
+        'PCE Inflation: March 20, 2019',
+        'Survey of Professional Forecasters - PCE-Core Inflation:',
+        ' 2019Q3, August 9, 2019',
+        'TIPS Spread: last six weeks']
+df = pd.DataFrame({
+        'text':text,
+        'y':[ymax - .002, ymax - .004, ymax - .002, ymax - .004, ymax - .002 ],
+        'x': ['2019', '2019','Nowcast','Nowcast', '5 Years'],
+        'xoff': [-50,-50,-100,-100,-100]
+        })
+source = ColumnDataSource(df)
+labels = LabelSet(x = 'x', y = 'y', text = 'text',x_offset = 'xoff', 
+                  source = source)
+p.add_layout(labels)
 
 p.xgrid.grid_line_color = None
 p.yaxis.formatter=NumeralTickFormatter(format="0.00%")
