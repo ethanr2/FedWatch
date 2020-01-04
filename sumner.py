@@ -8,6 +8,7 @@ Created on Mon Aug  5 16:33:42 2019
 from datetime import date
 from datetime import datetime as dt
 from time import time
+import os 
 
 import numpy as np
 import pandas as pd
@@ -22,7 +23,7 @@ from bokeh.layouts import row, column
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 
-import os 
+from fredData import get_FFR
 
 def getTable():
     path = 'chromedriver'
@@ -44,7 +45,7 @@ def getTable():
     table['Last'] = table['Last'].astype(float)/100
     
     name = dataPath +  '/cme.pkl'
-    table.to_pickle(name)
+    #table.to_pickle(name)
     
     return table
 
@@ -65,7 +66,7 @@ def set_up(x, y, truncated = True, margins = None):
     
     return(x,y,xrng,yrng)
     
-def chart_NGDP_ser(data,low, up, name):
+def intRateChart(data, low, up, name):
     xdata, ydata, xrng, yrng = set_up(data['Month'], data['Last'])
     yrng = (0,.03)
     now = dt.now().strftime('%B, %d, %Y')
@@ -83,7 +84,8 @@ def chart_NGDP_ser(data,low, up, name):
     
     xpos = len(xdata) // 2
     ypos = (low + up)/2
-    lbl = Label(x=xdata[xpos - 4], y=ypos - .0005,
+    print(xdata, xpos)
+    lbl = Label(x=xdata[xpos], y=ypos - .0005,
                  text='Current FFR Target Range')
     p.add_layout(lbl)
     
@@ -97,12 +99,31 @@ def chart_NGDP_ser(data,low, up, name):
     export_png(p,name + '.png')
     
     return p
-#df = getTable()
+
 path = 'chromedriver'
 driver = Chrome(path)
 dataPath = 'data/' + str(dt.now())[:10]
-os.mkdir(dataPath)
+#os.mkdir(dataPath)
+df = getTable()
+print(df)
 
+#%%
+
+df = pd.read_pickle(dataPath +  r'/cme.pkl')
+df['Last'] = 1 - df['Last'] 
+name = u'imgs/ffr' + str(dt.now())[:10]
+output_file(name + '.html')
+
+ffr = get_FFR()
+
+show(intRateChart(df,ffr['FFR_lower'],ffr['FFR_upper'], name))
+
+
+driver.close()
+
+
+
+#%%
 def find_note():
     URL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
     driver.get(URL)
@@ -116,35 +137,19 @@ def find_note():
     item = items[i-1].find_element_by_link_text('Implementation Note')
     return item.get_attribute('href')
 
-#URL = find_note()
-#driver.get(URL)
-#item = driver.find_element_by_xpath('//*[@id="content"]/div[3]/div[1]/ul')
-#with open(dataPath + '/FedImpNote.txt', 'w') as file:
-#    file.write(item.text)
-#words = item.text.split()    
-#find = ['maintain', 'the', 'federal', 'funds', 'rate', 'in', 'a', 'target',
-#        'range', 'of']
-#n = len(find)
-#for i in range(len(words) - len(find)):
-#    if words[i: i + n] == find:
-#        lo = float(words[i + n])
-#        print(, words[i + n + 2]) 
-getTable()
-#df = pd.read_pickle(r'data\2019-08-14\cme.pkl')
-#df['Last'] = 1 - df['Last'] 
-#name = u'imgs/ffr' + str(dt.now())[:10]
-#output_file(name + '.html')
-#show(chart_NGDP_ser(df,.02,.0225, name))
-
-
-
-
-
-
-
-driver.close()
-
-
+URL = find_note()
+driver.get(URL)
+item = driver.find_element_by_xpath('//*[@id="content"]/div[3]/div[1]/ul')
+with open(dataPath + '/FedImpNote.txt', 'w') as file:
+    file.write(item.text)
+words = item.text.split()    
+find = ['maintain', 'the', 'federal', 'funds', 'rate', 'in', 'a', 'target',
+        'range', 'of']
+n = len(find)
+for i in range(len(words) - len(find)):
+    if words[i: i + n] == find:
+        lo = float(words[i + n])
+        print(lo, words[i + n + 2]) 
 
 
 
