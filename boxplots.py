@@ -24,10 +24,14 @@ from selenium.webdriver.common.by import By
 
 import os 
 
+from fredData import get_SEP
+
+
+
 def makedf():
-    df1 = pd.read_excel('data/2019-08-20/spf.xlsx', sheet_name = 'COREPCE')
+    df1 = pd.read_excel('data/2019-09-18/spf.xlsx', sheet_name = 'COREPCE')
     df1 = df1.loc[(df1['YEAR'] == 2019) & (df1['QUARTER'] == 3), ['COREPCE2', 'COREPCE3', 'COREPCE4', 'COREPCE5', 'COREPCE6']].dropna()/100
-    df2 = pd.read_excel('data/2019-08-20/fedwatch.xls', sheet_name = 1)
+    df2 = pd.read_excel('data/2019-09-18/fedwatch.xls', sheet_name = 1)
     df2['DATE'] = pd.DatetimeIndex(df2['DATE'])
     recent = df2['DATE'].max()
     first = recent - timedelta(days = 42)
@@ -90,15 +94,15 @@ def makeData():
     lower.data = [max([x,y]) for (x,y) in zip(list(qmin.loc[:,'data']),lower.data)]
     def SEP():
         sep = pd.DataFrame({
-                'qmax': [2.1,2.2,2.2], 
-                'q3' : [1.9,2.1,2.1],
-                'q2' : [1.8,2.0,2.0],
-                'q1' : [1.8,2.0,2.0],
-                'qmin' : [1.6, 1.9, 2.0]
-                }, index = ['2019','2020','2021'])
+                'qmax': [1.7, 2.1, 2.3, 2.2], 
+                'q3' : [1.6, 2.0, 2.0, 2.2],
+                'q2' : [1.5, 1.9, 2.0, 2.0],
+                'q1' : [1.5, 1.8, 2.0, 2.0],
+                'qmin' : [1.4, 1.7, 1.8, 1.8]
+                }, index = ['2019','2020','2021','2022'])
         iqr = sep['q3'] - sep['q1']
-        sep['upper'] = sep['q3'] + 1.5*iqr
-        sep['lower'] = sep['q1'] - 1.5*iqr
+        sep['upper'] = sep['qmax']
+        sep['lower'] = sep['qmin']
         
         return sep/100
     data = pd.DataFrame({
@@ -110,7 +114,7 @@ def makeData():
             'upper': upper.data,
             'lower': lower.data
             })
-    data = data.append(SEP())
+    data = data.append(get_SEP())
     
     return data, out
 
@@ -119,6 +123,7 @@ xdict = {
         '2019':'2019',
         '2020':'2020',
         '2021':'2021',
+        '2022':'2022',
         '':'',
         'COREPCE2':'Nowcast', 
         'COREPCE3':'1 Quarter', 
@@ -130,7 +135,7 @@ xdict = {
         'T10YIE':'10 Years'
         }
 xlab = list(xdict.values())
-#data, out = makeData()
+data, out = makeData()
 
 ymax = float(data['qmax'].max())+ .004
 ymin = float(data['qmin'].min())
@@ -140,8 +145,8 @@ p = figure(width = 1400,
            title="Target👏The👏Forecast👏", 
            y_axis_label = 'Inflation Forecast', 
            y_range = (ymin, ymax), x_range = xlab)
-xlab.pop(3)
-xlab.pop(8)
+xlab.pop(4)
+xlab.pop(9)
 # the order is slightly messed up
 data = data.loc[xlab,:]
 
@@ -172,15 +177,15 @@ p.line([' ', ' '], [0,.04], color = 'black')
 p.line(['', ''], [0,.04], color = 'black')
 
 text = ['Summary of Economic Projections',
-        'PCE Inflation: March 20, 2019',
+        'PCE Inflation: September 18, 2019',
         'Survey of Professional Forecasters - PCE-Core Inflation:',
-        ' 2019Q3, August 9, 2019',
+        ' 2019Q3: August 9, 2019',
         'TIPS Spread: last six weeks']
 df = pd.DataFrame({
         'text':text,
         'y':[ymax - .002, ymax - .004, ymax - .002, ymax - .004, ymax - .002 ],
         'x': ['2019', '2019','Nowcast','Nowcast', '5 Years'],
-        'xoff': [-50,-50,-100,-100,-100]
+        'xoff': [-40,-40,-90,-90,-90]
         })
 source = ColumnDataSource(df)
 labels = LabelSet(x = 'x', y = 'y', text = 'text',x_offset = 'xoff', 
@@ -195,3 +200,5 @@ export_png(p,name + '.png')
 p.xaxis.major_label_overrides = xdict
 
 show(p)
+#%%
+

@@ -39,8 +39,8 @@ def getTable():
     
     table = table.loc[bools, ['Month', 'Last', 'Updated']]
     def getDTS(x):
-        
         return dt.strptime(x,'%b %Y')
+    
     table['Month'] = table['Month'].apply(getDTS)
     table['Last'] = table['Last'].astype(float)/100
     
