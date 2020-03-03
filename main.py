@@ -38,22 +38,6 @@ FOMC_MEETINGS = [dt(2020, 1, 29),
          dt(2021, 12, 15)
          ]
 
-xdict = {
-        '2019':'2019',
-        '2020':'2020',
-        '2021':'2021',
-        '2022':'2022',
-        '':'',
-        'COREPCE2':'Nowcast', 
-        'COREPCE3':'1 Quarter', 
-        'COREPCE4':'2 Quarters', 
-        'COREPCE5':'3 Quarters', 
-        'COREPCE6':'1 Year', 
-        ' ':' ',
-        'TIPS_5':'5 Years',
-        'TIPS_10':'10 Years'
-        }
-
 def makeData():
     df = pd.concat([PCE, TIPS])
     print(df)
@@ -103,6 +87,24 @@ def makeData():
     
     return data, out
 
+def make_x_axis_labels(SEP):
+    xdict = []
+    for date in SEP.index.tolist():
+        xdict.append((str(date), str(date)))
+    xdict = xdict + [
+            ('',''),
+            ('COREPCE2','Nowcast'),
+            ('COREPCE3','1 Quarter'),
+            ('COREPCE4','2 Quarters'),
+            ('COREPCE5','3 Quarters'),
+            ('COREPCE6','1 Year'),
+            (' ',' '),
+            ('TIPS_5','5 Years'),
+            ('TIPS_10','10 Years')
+            ]
+    xdict = dict(xdict)
+    return xdict
+
 def set_up(x, y, truncated = True, margins = None):
     if truncated: 
         b = (3 * y.min() - y.max())/2
@@ -127,7 +129,7 @@ def FFR_chart(data, low, up, name):
     yrng = (0,.03)
     now = dt.now().strftime('%B, %d, %Y')
     
-    p = figure(width = int(1000), height = int(700*2/3),
+    p = figure(width = 1400, height = int(700*2/3),
                title="CME 30-Day Federal Fund Futures: {}".format(now), 
                x_axis_label = 'Date', x_axis_type = 'datetime',
                y_axis_label = 'Implied Federal Funds Rate', 
@@ -147,11 +149,13 @@ def FFR_chart(data, low, up, name):
     
     for date in FOMC_MEETINGS:
         p.line([date,date], yrng, color = 'black', alpha = 0.3)
+    for y in range(0, int(yrng[-1]*400)):
+        p.line(xrng, y/400, color = 'grey', alpha = 0.3)
     
     ytik = SingleIntervalTicker()
     ytik.interval = .0025
     p.yaxis[0].ticker = ytik
-    p.xaxis[0].ticker.desired_num_ticks = 12
+    p.xaxis[0].ticker.desired_num_ticks = len(xdata)
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
     p.yaxis.formatter=NumeralTickFormatter(format="0.00%")
@@ -163,6 +167,7 @@ def FFR_chart(data, low, up, name):
 def inf_chart():
     xlab = list(xdict.values())
     data, out = makeData()
+    
     
     ymax = float(data['qmax'].max())+ .004
     ymin = float(data['qmin'].min())
@@ -203,9 +208,9 @@ def inf_chart():
     p.line(['', ''], [0,.04], color = 'black')
     
     text = ['Summary of Economic Projections',
-            'PCE-Core Inflation: September 18, 2019',
-            'Survey of Professional Forecasters - PCE-Core Inflation:',
-            ' 2019Q3: August 9, 2019',
+            'PCE-Core Inflation: December 11, 2019',
+            'Survey of Professional Forecasters',
+            'PCE-Core Inflation: {}Q{}'.format(PCE.year,PCE.quarter),
             'TIPS Spread: last six weeks']
     df = pd.DataFrame({
             'text':text,
@@ -235,8 +240,15 @@ FFR = get_FFR()
 SEP = get_SEP()
 PCE = get_SPF()
 TIPS = get_TIPS()
+xdict = make_x_axis_labels(SEP)
 
 col = column(FFR_chart(futures,FFR['FFR_lower'],FFR['FFR_upper'], name), inf_chart())
 show(col)
+#%%
+
+
+
+
+
 
 
