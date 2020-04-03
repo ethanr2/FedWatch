@@ -34,24 +34,23 @@ def get_futures():
     print('CME FFR Futures:')
     print(df)
     
+    update_db(df)
+    
     return df
 
-
-#df = get_futures()
-
-db = pd.read_csv('data/cme_database.csv')
-
-row = [dt.now(), df.loc[0, 'Month'].month]
-row.extend(df['Last'].tolist())
-
-if len(row) < len(db.columns):
-    for i in range(len(db.columns) - len(row)):
-        row.append(np.nan)
-db.loc[db['month'].size,:] = row
-db.to_csv('data/cme_database.csv', index = False)
-#%%
+def update_db(df):
+    db = pd.read_csv('data/cme_database.csv')
     
+    row = [dt.now(), df.loc[0, 'Month'].month]
+    row.extend(df['Last'].tolist())
+    #
+    if len(row) < len(db.columns):
+        for i in range(len(db.columns) - len(row)):
+            row.append(np.nan)
+    db.loc[db['month'].size,:] = row
+    db.to_csv('data/cme_database.csv', index = False)
 
+#%%
 
 
 
