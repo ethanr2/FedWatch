@@ -68,4 +68,3 @@ def update_db(df):
 
 
 
-
