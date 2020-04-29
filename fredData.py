@@ -51,7 +51,7 @@ def get_SEP():
     dates = sep.index.to_series()
     for date in dates:
         dates[date] = date[:4]
-    sep = sep.set_index(dates)
+    sep = sep.set_index(dates).sort_index()
     sep['upper'] = sep['qmax']
     sep['lower'] = sep['qmin']
     
@@ -80,5 +80,10 @@ def get_TIPS():
     print(tips)
     
     return tips
-
+#df = get_SEP().index.tolist()
+    
+data = requests.get(URL.format(SERIES_IDS['q2'], key, 4)).json()
+data
 #%%
+
+
