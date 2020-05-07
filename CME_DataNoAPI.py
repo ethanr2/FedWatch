@@ -68,17 +68,16 @@ if len(row) < len(db.columns):
     for i in range(len(db.columns) - len(row)):
         row.append('')
 
-#with open('data/cme_database.csv', 'a'):
-
-row = [str(x) for x in row]
-print(','.join(row))
+with open('data/cme_database.csv', 'a') as f:
+    print(f.read())
+#    row = [str(x) for x in row]
+#    f.write(','.join(row) + '\n')
+    
+df = pd.read_csv('data/cme_database.csv')
+df
 #%%
-db.loc[db['month'].size,:] = row
-db.to_csv('data/cme_database.csv', index = False)
 
-
-
-
+row = get_futures()
 
 
 
