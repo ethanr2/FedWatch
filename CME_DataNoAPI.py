@@ -66,13 +66,12 @@ row
 
 if len(row) < len(db.columns):
     for i in range(len(db.columns) - len(row)):
-        row.append(np.nan)
+        row.append('')
 
-with open('data/cme_database.csv', 'a'):
-    
-#%%
-temp = row[0]
-print(str(temp))
+#with open('data/cme_database.csv', 'a'):
+
+row = [str(x) for x in row]
+print(','.join(row))
 #%%
 db.loc[db['month'].size,:] = row
 db.to_csv('data/cme_database.csv', index = False)
