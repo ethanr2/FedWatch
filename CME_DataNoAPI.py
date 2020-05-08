@@ -47,13 +47,15 @@ def update_db(df):
     if len(row) < len(db.columns):
         for i in range(len(db.columns) - len(row)):
             row.append('')
+    elif len(row) > len(db.columns):
+        row = row[:len(db.columns)]
     
     with open('data/cme_database.csv', 'a') as f:
         row = [str(x) for x in row]
         f.write(','.join(row) + '\n')
 
 #%%
-
+get_futures()
 db = pd.read_csv('data/cme_database.csv')
 db
 
