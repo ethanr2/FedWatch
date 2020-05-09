@@ -105,17 +105,12 @@ def make_x_axis_labels(SEP):
     xdict = dict(xdict)
     return xdict
 
-def set_up(x, y, truncated = True, margins = None):
-    if truncated: 
-        b = (3 * y.min() - y.max())/2
+def set_up(x, y):
+    xrng = (dt.now(), x.max())
+    if y.min() < 0:
+        yrng = (y.min() - .0025, y.max() + .0025)
     else:
-        b = y.min()
-    if margins == None:    
-        xrng = (x.min(),x.max())
-        yrng = (b,y.max())
-    else:
-        xrng = (x.min() - margins,x.max() + margins)
-        yrng = (b - margins,y.max() + margins)
+        yrng(0, y.max() + .0025)
         
     x = x.dropna()
     y = y.dropna()
@@ -124,9 +119,7 @@ def set_up(x, y, truncated = True, margins = None):
     
 def FFR_chart(data, low, up, name):
     xdata, ydata, xrng, yrng = set_up(data['Month'], data['Last'])
-    xrng = (dt.now(), xrng[1])
-    print(xrng)
-    yrng = (0,.03)
+
     now = dt.now().strftime('%B, %d, %Y')
     
     p = figure(width = 1400, height = int(700*2/3),
@@ -135,14 +128,14 @@ def FFR_chart(data, low, up, name):
                y_axis_label = 'Implied Federal Funds Rate', 
                y_range = yrng, x_range = xrng)
 
-    p.line(xrng,[0,0], color = 'black')
+    
     p.line(xdata,ydata, color = 'blue')
     p.line(xrng, [low,low], color ='Black', line_dash = 'dashed')
     p.line(xrng, [up,up], color ='Black', line_dash = 'dashed')
     
     xpos = len(xdata) // 2
     ypos = (low + up)/2
-    print(xdata, xpos)
+    
     lbl = Label(x=xdata[xpos], y=ypos - .0005,
                  text='Current FFR Target Range')
     p.add_layout(lbl)
@@ -198,7 +191,6 @@ def inf_chart():
     
     # outliers
     if not out.empty:
-        print(out.empty)
         p.circle(out['x'], out['y'], size=6, color="#F38630", fill_alpha=0.6)
     
     
@@ -235,12 +227,12 @@ def inf_chart():
 name = u'imgs/ffr' + str(dt.now())[:10]
 output_file(name + '.html')
 
-futures = get_futures()
-FFR = get_FFR()
-SEP = get_SEP()
-PCE = get_SPF()
-TIPS = get_TIPS()
-xdict = make_x_axis_labels(SEP)
+#futures = get_futures()
+#FFR = get_FFR()
+#SEP = get_SEP()
+#PCE = get_SPF()
+#TIPS = get_TIPS()
+#xdict = make_x_axis_labels(SEP)
 
 col = column(FFR_chart(futures,FFR['FFR_lower'],FFR['FFR_upper'], name), inf_chart())
 show(col)
