@@ -227,12 +227,12 @@ def inf_chart():
 name = u'imgs/ffr' + str(dt.now())[:10]
 output_file(name + '.html')
 
-#futures = get_futures()
-#FFR = get_FFR()
-#SEP = get_SEP()
-#PCE = get_SPF()
-#TIPS = get_TIPS()
-#xdict = make_x_axis_labels(SEP)
+futures = get_futures()
+FFR = get_FFR()
+SEP = get_SEP()
+PCE = get_SPF()
+TIPS = get_TIPS()
+xdict = make_x_axis_labels(SEP)
 
 col = column(FFR_chart(futures,FFR['FFR_lower'],FFR['FFR_upper'], name), inf_chart())
 show(col)
