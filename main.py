@@ -110,7 +110,7 @@ def set_up(x, y):
     if y.min() < 0:
         yrng = (y.min() - .0025, y.max() + .0025)
     else:
-        yrng(0, y.max() + .0025)
+        yrng = (0, y.max() + .0025)
         
     x = x.dropna()
     y = y.dropna()
@@ -153,7 +153,7 @@ def FFR_chart(data, low, up, name):
     p.ygrid.grid_line_color = None
     p.yaxis.formatter=NumeralTickFormatter(format="0.00%")
     
-    export_png(p,name + '.png')
+    export_png(p, filename = name + '.png')
     
     return p
 
@@ -219,7 +219,7 @@ def inf_chart():
     p.yaxis.formatter=NumeralTickFormatter(format="0.00%")
     p.yaxis[0].ticker.desired_num_ticks = 10
     name = u'imgs/inf_forecast' + str(dt.now())[:10]
-    export_png(p,name + '.png')
+    export_png(p, filename = name + '.png')
     p.xaxis.major_label_overrides = xdict
 
     return p
