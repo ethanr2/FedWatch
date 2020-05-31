@@ -54,8 +54,11 @@ def update_db(df):
         row = [str(x) for x in row]
         f.write(','.join(row) + '\n')
 
-#%%
-get_futures()
-db = pd.read_csv('data/cme_database.csv')
-db
+if __name__ == '__main__':
+    get_futures()
+
+
+
+
+
 
