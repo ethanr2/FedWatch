@@ -13,7 +13,7 @@ import pandas as pd
 
 URL = "https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/305/G?quoteCodes=null&_=1null"
 
-def get_futures():
+def get_futures(path = ''):
     df = {
           'Month': [],
           'Last': []
@@ -34,12 +34,12 @@ def get_futures():
     print('CME FFR Futures:')
     print(df)
     
-    update_db(df)
+    update_db(df, path)
     
     return df
 
-def update_db(df):
-    db = pd.read_csv('data/cme_database.csv')
+def update_db(df, path = ''):
+    db = pd.read_csv(path + 'data/cme_database.csv')
     
     row = [dt.now(), df.loc[0, 'Month'].month]
     row.extend(df['Last'].tolist())
@@ -50,14 +50,20 @@ def update_db(df):
     elif len(row) > len(db.columns):
         row = row[:len(db.columns)]
     
-    with open('data/cme_database.csv', 'a') as f:
+    with open(path + 'data/cme_database.csv', 'a') as f:
         row = [str(x) for x in row]
         f.write(','.join(row) + '\n')
 
+#def 
+
+
+
 if __name__ == '__main__':
-    get_futures()
+    data_path = __file__[:__file__.find('CME')]
+    get_futures(data_path)
 
 
+#%%
 
 
 
