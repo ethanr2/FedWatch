@@ -45,6 +45,7 @@ def get_SEP():
     for k in ['qmax', 'q3', 'q2', 'q1', 'qmin']:
         data = requests.get(URL.format(SERIES_IDS[k], key, 4)).json()
         data = pd.DataFrame(data['observations']).set_index('date')
+        data = data.loc[data['value'] != '.',:]
         data = data['value'].astype(float)/100
         sep[k] = data
     sep = pd.DataFrame(sep)
@@ -60,6 +61,7 @@ def get_SEP():
     
     return sep
 
+#%%
 def get_TIPS():
     tips = {}
     for k in ['TIPS_5', 'TIPS_10']:
@@ -82,8 +84,7 @@ def get_TIPS():
     return tips
 #df = get_SEP().index.tolist()
     
-data = requests.get(URL.format(SERIES_IDS['q2'], key, 4)).json()
-data
+
 #%%
 
 
