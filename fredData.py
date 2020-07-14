@@ -7,9 +7,10 @@ Created on Fri Jan  3 18:33:00 2020
 
 import requests
 from datetime import timedelta as td
+from datetime import datetime as dt
 
 import pandas as pd
-
+from selenium import webdriver
 
 SERIES_IDS = {
         'FFR_upper': 'DFEDTARU', # Federal Funds Target Range - Upper Limit 
@@ -22,8 +23,10 @@ SERIES_IDS = {
         'TIPS_5': 'T5YIE', # 5-Year Breakeven Inflation Rate
         'TIPS_10': 'T10YIE', # 5-Year Breakeven Inflation Rate
         }
+# FRED API URL
 URL = 'https://api.stlouisfed.org/fred/series/observations?series_id={}&api_key={}&limit={}&sort_order=desc&file_type=json'
-
+# Fedsearch url
+URL2 = 'https://www.fedsearch.org/fomc-docs/search?advanced_search=true&fomc_document_type=allpresconf&text=Projection+materials&search_precision=Exact+Phrase&from_month=3&from_year=2019&to_month=7&to_year=2020&sort=Most+Recent+First&Search=Search+Again'
 
 with open('fredAPIKey.txt') as file:
     key = file.read()
@@ -61,7 +64,6 @@ def get_SEP():
     
     return sep
 
-#%%
 def get_TIPS():
     tips = {}
     for k in ['TIPS_5', 'TIPS_10']:
@@ -82,9 +84,18 @@ def get_TIPS():
     print(tips)
     
     return tips
-#df = get_SEP().index.tolist()
-    
-
-#%%
 
 
+# Finds the date that the most recent SEP was released. 
+def get_SEP_date():
+    with webdriver.Chrome() as driver:
+        driver.get(URL2)
+        tag = driver.find_element_by_partial_link_text('Projections')
+        text = tag.text
+        i = text.find(',') + 2 
+        date = dt.strptime(text[i:], '%B %d, %Y')
+        
+    return date
+
+df = get_SEP()
+print(df)

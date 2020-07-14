@@ -170,10 +170,11 @@ def inf_chart():
                title="Target👏The👏Forecast👏", 
                y_axis_label = 'Inflation Forecast', 
                y_range = (ymin, ymax), x_range = xlab)
-    xlab.pop(4)
-    xlab.pop(9)
+
+    xlab.pop(xlab.index(''))
+    xlab.pop(xlab.index(' '))
     # the order is slightly messed up
-    data = data.loc[xlab,:]
+    data = data.reindex(xlab)
     
     # stems
     p.segment(xlab, data['upper'], xlab, data['q3'], line_color="black")
@@ -224,6 +225,7 @@ def inf_chart():
 
     return p
 
+
 name = u'imgs/ffr' + str(dt.now())[:10]
 output_file(name + '.html')
 
@@ -237,8 +239,6 @@ xdict = make_x_axis_labels(SEP)
 col = column(FFR_chart(futures,FFR['FFR_lower'],FFR['FFR_upper'], name), inf_chart())
 show(col)
 #%%
-
-
 
 
 
