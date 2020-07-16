@@ -59,6 +59,9 @@ def get_SEP():
     sep['upper'] = sep['qmax']
     sep['lower'] = sep['qmin']
     
+    mtg_date = get_SEP_date()
+    sep.year = mtg_date.year
+    sep.quarter = (mtg_date.month - 1)//3 + 1
     print('Summary of Economic Projections:')
     print(sep)
     
@@ -85,7 +88,6 @@ def get_TIPS():
     
     return tips
 
-
 # Finds the date that the most recent SEP was released. 
 def get_SEP_date():
     with webdriver.Chrome() as driver:
@@ -97,5 +99,3 @@ def get_SEP_date():
         
     return date
 
-df = get_SEP()
-print(df)

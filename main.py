@@ -196,19 +196,19 @@ def inf_chart():
     
     
     # Cosmetic stuff
-    p.line(['2019', '10 Years'], [.02,.02], color = 'black', line_dash = 'dashed')
+    p.line(['2020', '10 Years'], [.02,.02], color = 'black', line_dash = 'dashed')
     p.line([' ', ' '], [0,.04], color = 'black')
     p.line(['', ''], [0,.04], color = 'black')
     
     text = ['Summary of Economic Projections',
-            'PCE-Core Inflation: December 11, 2019',
+            'PCE-Core Inflation: {}Q{}'.format(SEP.year,SEP.quarter),
             'Survey of Professional Forecasters',
             'PCE-Core Inflation: {}Q{}'.format(PCE.year,PCE.quarter),
             'TIPS Spread: last six weeks']
     df = pd.DataFrame({
             'text':text,
             'y':[ymax - .002, ymax - .004, ymax - .002, ymax - .004, ymax - .002 ],
-            'x': ['2019', '2019','Nowcast','Nowcast', '5 Years'],
+            'x': ['2020', '2020','Nowcast','Nowcast', '5 Years'],
             'xoff': [-40,-40,-90,-90,-90]
             })
     source = ColumnDataSource(df)
@@ -244,3 +244,4 @@ show(col)
 
 
 
+print('PCE-Core Inflation: {}Q{}'.format(SEP.year,SEP.quarter))
