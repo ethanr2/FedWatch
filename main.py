@@ -163,7 +163,8 @@ def inf_chart():
     
     
     ymax = float(data['qmax'].max())+ .004
-    ymin = float(data['qmin'].min())
+    ymin = 0
+    #ymin = float(data['qmin'].min())
     
     # now we draw the chart
     p = figure(width = 1400,
@@ -243,5 +244,3 @@ show(col)
 
 
 
-
-print('PCE-Core Inflation: {}Q{}'.format(SEP.year,SEP.quarter))
