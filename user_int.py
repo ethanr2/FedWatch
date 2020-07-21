@@ -37,6 +37,22 @@ FOMC_MEETINGS = [dt(2020, 1, 29),
          ]
 
 print('Last 30 days available: ')
-df = pd.read_csv('data/cme_database.csv')
-days = d[]
+df = pd.read_csv('data/cme_database.csv',parse_dates = ['timestamp'])
+df = df.set_index('timestamp', drop = False).sort_index(ascending = True)
+ind = df.pop('timestamp')
+days = pd.Series(ind.apply(lambda x: x.date()).unique())
+
+#%%
+for i,day in days[-30:].items():
+    print(i,day)
+#%%
+# op = input('''Choose from the following options:
+#       0: Get most recent day
+#       1: Select from the above via index 
+#       2: Search by specific date
+#       ''')
+op = '0'
+if op == '0':
+    bools = ind.apply(lambda x: days.iloc[-1] ==  x.date)
+    print (df.loc[bools,:], type(days.iloc[-1] ))
 #%%
